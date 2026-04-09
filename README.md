@@ -85,9 +85,12 @@ weekly-report-net-ws/
 
 ---
 
-## ⚙️ Configuration (`App.config`)
+## ⚙️ Configuration (`web.config`)
+
+> `web.config` is excluded from source control (`.gitignore`). Create it manually on the server from the template below.
 
 ```xml
+<?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <connectionStrings>
     <add name="DefaultConnection"
@@ -96,11 +99,25 @@ weekly-report-net-ws/
                            Encrypt=True;TrustServerCertificate=True;" />
   </connectionStrings>
   <appSettings>
-    <!-- Listening port -->
-    <add key="Port" value="4443" />
     <!-- Comma-separated allowed CORS origins. Empty = allow all (dev only) -->
     <add key="AllowedOrigins" value="http://localhost:3000" />
   </appSettings>
+  <system.web>
+    <compilation debug="false" targetFramework="4.8" />
+    <httpRuntime targetFramework="4.8" />
+  </system.web>
+  <system.webServer>
+    <handlers>
+      <remove name="ExtensionlessUrlHandler-Integrated-4.0" />
+      <remove name="OPTIONSVerbHandler" />
+      <remove name="TRACEVerbHandler" />
+      <add name="ExtensionlessUrlHandler-Integrated-4.0"
+           path="*."
+           verb="*"
+           type="System.Web.Handlers.TransferRequestHandler"
+           preCondition="integratedMode,runtimeVersionv4.0" />
+    </handlers>
+  </system.webServer>
 </configuration>
 ```
 
@@ -108,26 +125,29 @@ weekly-report-net-ws/
 
 ```
 1. Environment variable  →  WEEKLY_REPORT_CONNECTION_STRING
-2. App.config            →  DefaultConnection
+2. web.config            →  DefaultConnection
 3. Exception thrown      →  Application will not start
 ```
 
-**Setting via environment variable (recommended for production):**
-```powershell
-$env:WEEKLY_REPORT_CONNECTION_STRING = "Server=YOUR_SERVER\SQLEXPRESS;Database=WeeklyReport;User Id=user;Password=pass;Encrypt=True;TrustServerCertificate=True;"
+**Setting via IIS application pool environment variable (recommended):**
+```
+IIS Manager → Application Pools → [YourPool] → Advanced Settings
+  → Environment Variables → WEEKLY_REPORT_CONNECTION_STRING = <connection string>
 ```
 
 ---
 
-## 🚀 Build & Run
+## 🚀 Build & Deploy (IIS)
 
 ### Prerequisites
 
 - .NET Framework 4.8 (pre-installed on Windows 10/11 and Windows Server 2019+)
 - .NET SDK 6+ (for `dotnet` CLI) **or** Visual Studio 2019/2022
 - SQL Server with the `WeeklyReport` database created
+- IIS with **.NET Framework 4.8** feature enabled
+- IIS **ASP.NET 4.8** role service installed
 
-### Build
+### 1. Build
 
 ```bash
 dotnet build WeeklyReportWS.csproj
@@ -140,21 +160,30 @@ Build succeeded.
     0 Error(s)
 ```
 
-### Run
+### 2. Publish
 
 ```bash
-dotnet run --project WeeklyReportWS.csproj
+dotnet publish WeeklyReportWS.csproj -c Release -o C:\inetpub\weeklyreportws
 ```
 
-```
-Starting weekly-report-ws on http://0.0.0.0:4443/
-Server started. Press Enter to stop...
-```
+### 3. Create `web.config` on the server
 
-### Health Check
+Copy the template from the Configuration section above into `C:\inetpub\weeklyreportws\web.config` and fill in the real connection string.
+
+### 4. Create IIS Application
+
+1. Open **IIS Manager**
+2. Expand **Sites** → right-click your site → **Add Application**
+3. Set **Alias** (e.g. `api`) and **Physical path** to `C:\inetpub\weeklyreportws`
+4. Click **Select...** next to Application Pool → choose or create a pool with:
+   - **.NET CLR version**: `v4.0`
+   - **Managed pipeline mode**: `Integrated`
+5. Click **OK**
+
+### 5. Health Check
 
 ```
-GET http://localhost:4443/health
+GET http://YOUR_SERVER/api/health
 ```
 
 ```json

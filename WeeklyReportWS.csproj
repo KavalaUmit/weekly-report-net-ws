@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>WeeklyReportWS</RootNamespace>
     <AssemblyName>WeeklyReportWS</AssemblyName>
@@ -10,11 +10,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="web.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Owin" Version="5.2.9" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.WebHost" Version="5.2.9" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.2" />
+    <PackageReference Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+
+
+  <Target Name="MoveDllsToBin" AfterTargets="Publish">
+    <ItemGroup>
+      <PublishDlls Include="$(PublishDir)*.dll" />
+      <PublishPdbs Include="$(PublishDir)*.pdb" />
+    </ItemGroup>
+    <MakeDir Directories="$(PublishDir)bin\" />
+    <Move SourceFiles="@(PublishDlls)" DestinationFolder="$(PublishDir)bin\" />
+    <Move SourceFiles="@(PublishPdbs)" DestinationFolder="$(PublishDir)bin\" />
+  </Target>
 
 </Project>
