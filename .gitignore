@@ -4,4 +4,4 @@ obj/
 *.user
 appsettings.Development.json
 App.config
-web.config
+
