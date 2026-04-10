@@ -9,6 +9,7 @@ using Microsoft.Owin.Cors;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
+using Swashbuckle.Application;
 using WeeklyReportWS.Data;
 using WeeklyReportWS.Filters;
 using WeeklyReportWS.Infrastructure;
@@ -40,6 +41,12 @@ namespace WeeklyReportWS
                 routeTemplate: "health",
                 defaults: new { controller = "Health", action = "Get" }
             );
+
+            config.EnableSwagger(c =>
+            {
+                c.SingleApiVersion("v1", "Weekly Report API");
+                c.PrettyPrint();
+            }).EnableSwaggerUi();
 
             app.UseWebApi(config);
         }

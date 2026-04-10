@@ -13,6 +13,9 @@
     <Compile Remove="WeeklyReportWS.Tests\**" />
     <None Remove="WeeklyReportWS.Tests\**" />
     <Content Remove="WeeklyReportWS.Tests\**" />
+    <Compile Remove="WeeklyReportWS.Runner\**" />
+    <None Remove="WeeklyReportWS.Runner\**" />
+    <Content Remove="WeeklyReportWS.Runner\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +33,7 @@
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageReference Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Swashbuckle" Version="5.6.0" />
   </ItemGroup>
 
 
