@@ -11,6 +11,9 @@ namespace WeeklyReportWS.Controllers
     [RoutePrefix("api/actions")]
     public class ActionsController : ApiController
     {
+        private readonly IDbConnectionFactory _db;
+        public ActionsController(IDbConnectionFactory db) { _db = db; }
+
         private const string ActionSelect = @"
             SELECT a.*, w.WeekNumber, w.Year, t.TypeName, s.StatusKey, s.StatusLabel, s.ColorHex, s.BgColorHex,
                    u.FullName, u.LineID, u.UnitID
@@ -40,7 +43,7 @@ namespace WeeklyReportWS.Controllers
             var where = "WHERE " + string.Join(" AND ", conditions);
             var sql = $"{ActionSelect} {where} ORDER BY a.ActionDate, a.ActionID";
 
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<Models.Action>(sql, parameters);
             return Ok(rows);
         }
@@ -49,7 +52,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("{id:long}")]
         public async Task<IHttpActionResult> GetById(long id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var action = await con.QueryFirstOrDefaultAsync<Models.Action>(
                 ActionSelect + " WHERE a.ActionID=@id AND a.IsDeleted=0", new { id });
             if (action == null) return NotFound();
@@ -68,7 +71,7 @@ namespace WeeklyReportWS.Controllers
                 || string.IsNullOrWhiteSpace(body.ActionDate))
                 return BadRequest("UserID, WeekID, TypeID and ActionDate are required");
 
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = (System.Data.Common.DbConnection)_db.CreateConnection();
             await con.OpenAsync();
             using var tx = con.BeginTransaction();
             try
@@ -103,7 +106,7 @@ namespace WeeklyReportWS.Controllers
         [HttpPut, Route("{id:long}")]
         public async Task<IHttpActionResult> Update(long id, [FromBody] UpdateActionRequest body)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = (System.Data.Common.DbConnection)_db.CreateConnection();
             await con.OpenAsync();
             using var tx = con.BeginTransaction();
             try
@@ -144,7 +147,7 @@ namespace WeeklyReportWS.Controllers
         [HttpPatch, Route("{id:long}/status")]
         public async Task<IHttpActionResult> PatchStatus(long id, [FromBody] PatchActionStatusRequest body)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = (System.Data.Common.DbConnection)_db.CreateConnection();
             await con.OpenAsync();
             using var tx = con.BeginTransaction();
             try
@@ -174,7 +177,7 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("{id:long}")]
         public async Task<IHttpActionResult> Delete(long id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync(
                 "UPDATE tbl_weekly_report_Actions SET IsDeleted=1, UpdatedAt=GETDATE() WHERE ActionID=@id",
                 new { id });

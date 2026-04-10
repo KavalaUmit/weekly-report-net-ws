@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="WeeklyReportWS.Tests\**" />
+    <None Remove="WeeklyReportWS.Tests\**" />
+    <Content Remove="WeeklyReportWS.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="web.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>

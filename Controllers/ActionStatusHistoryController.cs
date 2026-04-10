@@ -10,11 +10,14 @@ namespace WeeklyReportWS.Controllers
     [RoutePrefix("api/actions")]
     public class ActionStatusHistoryController : ApiController
     {
+        private readonly IDbConnectionFactory _db;
+        public ActionStatusHistoryController(IDbConnectionFactory db) { _db = db; }
+
         // GET /api/actions/:actionId/status-history
         [HttpGet, Route("{actionId:long}/status-history")]
         public async Task<IHttpActionResult> GetHistory(long actionId)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<ActionStatusHistory>(@"
                 SELECT h.*, s.StatusKey, s.StatusLabel, s.ColorHex, u.FullName AS ChangedByName
                 FROM tbl_weekly_report_ActionStatusHistory h
@@ -32,7 +35,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (body.ChangedBy == 0)
                 return BadRequest("ChangedBy is required");
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstAsync<ActionStatusHistory>(@"
                 INSERT INTO tbl_weekly_report_ActionStatusHistory (ActionID, StatusID, ChangedBy)
                 OUTPUT INSERTED.*
@@ -45,7 +48,7 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("{actionId:long}/status-history/{historyId:long}")]
         public async Task<IHttpActionResult> DeleteHistory(long actionId, long historyId)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync(
                 "DELETE FROM tbl_weekly_report_ActionStatusHistory WHERE HistoryID=@historyId AND ActionID=@actionId",
                 new { historyId, actionId });

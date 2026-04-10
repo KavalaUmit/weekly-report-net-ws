@@ -9,6 +9,9 @@ namespace WeeklyReportWS.Controllers
 {
     public class UsersController : ApiController
     {
+        private readonly IDbConnectionFactory _db;
+        public UsersController(IDbConnectionFactory db) { _db = db; }
+
         private const string UserSelect = @"
             SELECT u.UserID, u.WindowName, u.FullName, u.Title, u.PositionNumber,
                    u.DepartmentID, d.DepartmentName,
@@ -24,7 +27,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("api/users")]
         public async Task<IHttpActionResult> GetAll()
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<User>(UserSelect + " ORDER BY u.FullName");
             return Ok(rows);
         }
@@ -35,7 +38,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (string.IsNullOrWhiteSpace(windowName))
                 return BadRequest("windowName is required");
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
                 UserSelect + " WHERE u.WindowName = @windowName", new { windowName });
             if (row == null) return NotFound();
@@ -46,7 +49,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("api/users/windowname/{windowName}")]
         public async Task<IHttpActionResult> GetByWindowName(string windowName)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
                 UserSelect + " WHERE u.WindowName = @windowName", new { windowName });
             if (row == null) return NotFound();
@@ -57,7 +60,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> GetById(int id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
                 UserSelect + " WHERE u.UserID = @id", new { id });
             if (row == null) return NotFound();
@@ -70,7 +73,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (body == null || string.IsNullOrWhiteSpace(body.WindowName) || string.IsNullOrWhiteSpace(body.FullName))
                 return BadRequest("WindowName and FullName are required");
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync(@"
                 INSERT INTO tbl_weekly_report_Users (WindowName,FullName,DepartmentID,UnitID,LineID,Title,PositionNumber)
                 VALUES (@WindowName,@FullName,@DepartmentID,@UnitID,@LineID,@Title,@PositionNumber)",
@@ -84,7 +87,7 @@ namespace WeeklyReportWS.Controllers
         [HttpPut, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> Update(int id, [FromBody] UpdateUserRequest body)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync(@"
                 UPDATE tbl_weekly_report_Users
                 SET FullName=@FullName, DepartmentID=@DepartmentID, UnitID=@UnitID,
@@ -101,7 +104,7 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> Delete(int id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync("DELETE FROM tbl_weekly_report_Users WHERE UserID=@id", new { id });
             return StatusCode(HttpStatusCode.NoContent);
         }

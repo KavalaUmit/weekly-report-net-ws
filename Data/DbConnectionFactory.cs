@@ -1,5 +1,6 @@
 using System;
 using System.Configuration;
+using System.Data;
 using Microsoft.Data.SqlClient;
 
 namespace WeeklyReportWS.Data
@@ -10,15 +11,20 @@ namespace WeeklyReportWS.Data
 
         static DbConnectionFactory()
         {
-            // Priority: environment variable → App.config → exception
+            // Priority: environment variable → web.config/App.config → exception
             _connectionString =
                 Environment.GetEnvironmentVariable("WEEKLY_REPORT_CONNECTION_STRING")
                 ?? ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
                 ?? throw new InvalidOperationException(
                     "No connection string found. Set the WEEKLY_REPORT_CONNECTION_STRING " +
-                    "environment variable or configure 'DefaultConnection' in App.config.");
+                    "environment variable or configure 'DefaultConnection' in web.config.");
         }
 
-        public static SqlConnection CreateConnection() => new SqlConnection(_connectionString);
+        public static IDbConnection CreateConnection() => new SqlConnection(_connectionString);
+    }
+
+    public class SqlDbConnectionFactory : IDbConnectionFactory
+    {
+        public IDbConnection CreateConnection() => DbConnectionFactory.CreateConnection();
     }
 }

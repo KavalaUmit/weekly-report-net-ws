@@ -11,11 +11,14 @@ namespace WeeklyReportWS.Controllers
     [RoutePrefix("api/departments")]
     public class DepartmentsController : ApiController
     {
+        private readonly IDbConnectionFactory _db;
+        public DepartmentsController(IDbConnectionFactory db) { _db = db; }
+
         // GET /api/departments?unitId=&lineId=
         [HttpGet, Route("")]
         public async Task<IHttpActionResult> GetAll(int? unitId = null, int? lineId = null)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var conditions = new List<string>();
             if (unitId.HasValue) conditions.Add("d.UnitID = @unitId");
             if (lineId.HasValue) conditions.Add("u.LineID = @lineId");
@@ -34,7 +37,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("{id:int}")]
         public async Task<IHttpActionResult> GetById(int id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<Department>(@"
                 SELECT d.*, u.UnitName, u.LineID, l.LineName
                 FROM tbl_weekly_report_Departments d
@@ -51,7 +54,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (body == null || body.UnitID == 0 || string.IsNullOrWhiteSpace(body.DepartmentName))
                 return BadRequest("UnitID and DepartmentName are required");
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstAsync<Department>(
                 "INSERT INTO tbl_weekly_report_Departments (UnitID, DepartmentName) OUTPUT INSERTED.* VALUES (@UnitID, @DepartmentName)",
                 new { body.UnitID, body.DepartmentName });
@@ -62,7 +65,7 @@ namespace WeeklyReportWS.Controllers
         [HttpPut, Route("{id:int}")]
         public async Task<IHttpActionResult> Update(int id, [FromBody] CreateDepartmentRequest body)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<Department>(
                 "UPDATE tbl_weekly_report_Departments SET UnitID=@UnitID, DepartmentName=@DepartmentName OUTPUT INSERTED.* WHERE DepartmentID=@id",
                 new { body.UnitID, body.DepartmentName, id });
@@ -74,7 +77,7 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("{id:int}")]
         public async Task<IHttpActionResult> Delete(int id)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync("DELETE FROM tbl_weekly_report_Departments WHERE DepartmentID=@id", new { id });
             return StatusCode(HttpStatusCode.NoContent);
         }

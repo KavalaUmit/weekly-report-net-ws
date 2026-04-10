@@ -9,7 +9,9 @@ using Microsoft.Owin.Cors;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
+using WeeklyReportWS.Data;
 using WeeklyReportWS.Filters;
+using WeeklyReportWS.Infrastructure;
 
 [assembly: OwinStartup(typeof(WeeklyReportWS.Startup))]
 
@@ -22,6 +24,7 @@ namespace WeeklyReportWS
             app.UseCors(BuildCorsOptions());
 
             var config = new HttpConfiguration();
+            config.DependencyResolver = new SimpleDependencyResolver(new SqlDbConnectionFactory());
             config.MapHttpAttributeRoutes();
 
             config.Filters.Add(new GlobalExceptionFilter());

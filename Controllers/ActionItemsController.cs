@@ -10,11 +10,14 @@ namespace WeeklyReportWS.Controllers
     [RoutePrefix("api/actions")]
     public class ActionItemsController : ApiController
     {
+        private readonly IDbConnectionFactory _db;
+        public ActionItemsController(IDbConnectionFactory db) { _db = db; }
+
         // GET /api/actions/:actionId/items
         [HttpGet, Route("{actionId:long}/items")]
         public async Task<IHttpActionResult> GetItems(long actionId)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<ActionItem>(
                 "SELECT * FROM tbl_weekly_report_ActionItems WHERE ActionID=@actionId ORDER BY SortOrder",
                 new { actionId });
@@ -27,7 +30,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (body == null || string.IsNullOrWhiteSpace(body.ItemType) || body.ItemValue == null)
                 return BadRequest("ItemType and ItemValue are required");
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstAsync<ActionItem>(@"
                 INSERT INTO tbl_weekly_report_ActionItems (ActionID, SortOrder, ItemType, ItemValue)
                 OUTPUT INSERTED.*
@@ -40,7 +43,7 @@ namespace WeeklyReportWS.Controllers
         [HttpPut, Route("{actionId:long}/items/{itemId:long}")]
         public async Task<IHttpActionResult> UpdateItem(long actionId, long itemId, [FromBody] UpdateActionItemRequest body)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<ActionItem>(@"
                 UPDATE tbl_weekly_report_ActionItems
                 SET SortOrder=@SortOrder, ItemType=@ItemType, ItemValue=@ItemValue
@@ -55,7 +58,7 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("{actionId:long}/items/{itemId:long}")]
         public async Task<IHttpActionResult> DeleteItem(long actionId, long itemId)
         {
-            using var con = DbConnectionFactory.CreateConnection();
+            using var con = _db.CreateConnection();
             await con.ExecuteAsync(
                 "DELETE FROM tbl_weekly_report_ActionItems WHERE ItemID=@itemId AND ActionID=@actionId",
                 new { itemId, actionId });
