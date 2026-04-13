@@ -13,7 +13,7 @@ namespace WeeklyReportWS.Controllers
         public UsersController(IDbConnectionFactory db) { _db = db; }
 
         private const string UserSelect = @"
-            SELECT u.UserID, u.WindowName, u.FullName, u.Title, u.PositionNumber,
+            SELECT u.UserID, u.WindowsName, u.FullName, u.Title, u.PositionNumber,
                    u.DepartmentID, d.DepartmentName,
                    u.UnitID,       un.UnitName,
                    u.LineID,       l.LineName,
@@ -34,25 +34,47 @@ namespace WeeklyReportWS.Controllers
 
         // GET /user/getuserdata?windowName=  (legacy)
         [HttpGet, Route("user/getuserdata")]
-        public async Task<IHttpActionResult> GetUserData(string? windowName = null)
+        public async Task<IHttpActionResult> GetUserData(string? windowsName = null)
         {
-            if (string.IsNullOrWhiteSpace(windowName))
-                return BadRequest("windowName is required");
+            if (string.IsNullOrWhiteSpace(windowsName))
+                return BadRequest("windowsName is required");
             using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowName = @windowName", new { windowName });
+                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName });
             if (row == null) return NotFound();
             return Ok(row);
         }
 
         // GET /api/users/windowname/:windowName
-        [HttpGet, Route("api/users/windowname/{windowName}")]
-        public async Task<IHttpActionResult> GetByWindowName(string windowName)
+        [HttpGet, Route("api/users/windowsname/{windowsName}")]
+        public async Task<IHttpActionResult> GetByWindowsName(string windowsName)
         {
             using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowName = @windowName", new { windowName });
+                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName });
             if (row == null) return NotFound();
+            return Ok(row);
+        }
+
+        // GET /api/users/me  – resolved from Windows Authentication (User.Identity.Name)
+        [Authorize]
+        [HttpGet, Route("api/users/me")]
+        public async Task<IHttpActionResult> GetMe()
+        {
+            var rawName = User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(rawName))
+                return Unauthorized();
+
+            // IIS returns DOMAIN\username – try both forms against the DB
+            var shortName = rawName.Contains("\\") ? rawName.Split('\\')[1] : rawName;
+
+            using var con = _db.CreateConnection();
+            var row = await con.QueryFirstOrDefaultAsync<User>(
+                UserSelect + " WHERE u.WindowsName = @rawName OR u.WindowsName = @shortName",
+                new { rawName, shortName });
+            if (row == null)
+                return Content(HttpStatusCode.NotFound,
+                    new { WindowsName = rawName, ShortName = shortName });
             return Ok(row);
         }
 
@@ -71,15 +93,15 @@ namespace WeeklyReportWS.Controllers
         [HttpPost, Route("api/users")]
         public async Task<IHttpActionResult> Create([FromBody] CreateUserRequest body)
         {
-            if (body == null || string.IsNullOrWhiteSpace(body.WindowName) || string.IsNullOrWhiteSpace(body.FullName))
-                return BadRequest("WindowName and FullName are required");
+            if (body == null || string.IsNullOrWhiteSpace(body.WindowsName) || string.IsNullOrWhiteSpace(body.FullName))
+                return BadRequest("WindowsName and FullName are required");
             using var con = _db.CreateConnection();
             await con.ExecuteAsync(@"
-                INSERT INTO tbl_weekly_report_Users (WindowName,FullName,DepartmentID,UnitID,LineID,Title,PositionNumber)
-                VALUES (@WindowName,@FullName,@DepartmentID,@UnitID,@LineID,@Title,@PositionNumber)",
-                new { body.WindowName, body.FullName, body.DepartmentID, body.UnitID, body.LineID, body.Title, body.PositionNumber });
+                INSERT INTO tbl_weekly_report_Users (WindowsName,FullName,DepartmentID,UnitID,LineID,Title,PositionNumber)
+                VALUES (@WindowsName,@FullName,@DepartmentID,@UnitID,@LineID,@Title,@PositionNumber)",
+                new { body.WindowsName, body.FullName, body.DepartmentID, body.UnitID, body.LineID, body.Title, body.PositionNumber });
             var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowName = @windowName", new { windowName = body.WindowName });
+                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName = body.WindowsName });
             return Content(HttpStatusCode.Created, row);
         }
 

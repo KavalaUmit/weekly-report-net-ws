@@ -25,7 +25,7 @@ namespace WeeklyReportWS.Tests.Controllers
         // ── GetUserData validation ─────────────────────────────────────────────
 
         [Fact]
-        public async void GetUserData_NullWindowName_ReturnsBadRequest()
+        public async void GetUserData_NullWindowsName_ReturnsBadRequest()
         {
             var result = await _controller.GetUserData(null);
 
@@ -33,7 +33,7 @@ namespace WeeklyReportWS.Tests.Controllers
         }
 
         [Fact]
-        public async void GetUserData_EmptyWindowName_ReturnsBadRequest()
+        public async void GetUserData_EmptyWindowsName_ReturnsBadRequest()
         {
             var result = await _controller.GetUserData("");
 
@@ -41,7 +41,7 @@ namespace WeeklyReportWS.Tests.Controllers
         }
 
         [Fact]
-        public async void GetUserData_WhitespaceWindowName_ReturnsBadRequest()
+        public async void GetUserData_WhitespaceWindowsName_ReturnsBadRequest()
         {
             var result = await _controller.GetUserData("   ");
 
@@ -59,9 +59,9 @@ namespace WeeklyReportWS.Tests.Controllers
         }
 
         [Fact]
-        public async void Create_MissingWindowName_ReturnsBadRequest()
+        public async void Create_MissingWindowsName_ReturnsBadRequest()
         {
-            var body = new CreateUserRequest { WindowName = "", FullName = "John Doe" };
+            var body = new CreateUserRequest { WindowsName = "", FullName = "John Doe" };
 
             var result = await _controller.Create(body);
 
@@ -69,9 +69,9 @@ namespace WeeklyReportWS.Tests.Controllers
         }
 
         [Fact]
-        public async void Create_WhitespaceWindowName_ReturnsBadRequest()
+        public async void Create_WhitespaceWindowsName_ReturnsBadRequest()
         {
-            var body = new CreateUserRequest { WindowName = "   ", FullName = "John Doe" };
+            var body = new CreateUserRequest { WindowsName = "   ", FullName = "John Doe" };
 
             var result = await _controller.Create(body);
 
@@ -81,7 +81,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Create_MissingFullName_ReturnsBadRequest()
         {
-            var body = new CreateUserRequest { WindowName = "DOMAIN\\jdoe", FullName = "" };
+            var body = new CreateUserRequest { WindowsName = "DOMAIN\\jdoe", FullName = "" };
 
             var result = await _controller.Create(body);
 
@@ -91,7 +91,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Create_NullFullName_ReturnsBadRequest()
         {
-            var body = new CreateUserRequest { WindowName = "DOMAIN\\jdoe", FullName = null };
+            var body = new CreateUserRequest { WindowsName = "DOMAIN\\jdoe", FullName = null };
 
             var result = await _controller.Create(body);
 
@@ -101,7 +101,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Create_ValidBody_DbIsNotCalledUntilAfterValidation()
         {
-            var body = new CreateUserRequest { WindowName = "DOMAIN\\jdoe", FullName = "John Doe" };
+            var body = new CreateUserRequest { WindowsName = "DOMAIN\\jdoe", FullName = "John Doe" };
 
             _mockDb.Verify(d => d.CreateConnection(), Times.Never);
         }

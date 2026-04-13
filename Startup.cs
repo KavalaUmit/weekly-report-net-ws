@@ -70,13 +70,14 @@ namespace WeeklyReportWS
                         {
                             AllowAnyHeader = true,
                             AllowAnyMethod = true,
-                            SupportsCredentials = false
+                            SupportsCredentials = true
                         };
-                        if (origins.Length == 0)
-                            policy.AllowAnyOrigin = true;
-                        else
+                        // SupportsCredentials=true requires explicit origins (no wildcard)
+                        if (origins.Length > 0)
                             foreach (var o in origins)
                                 policy.Origins.Add(o);
+                        else
+                            policy.AllowAnyOrigin = true;
                         return Task.FromResult(policy);
                     }
                 }

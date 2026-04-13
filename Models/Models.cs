@@ -7,7 +7,7 @@ namespace WeeklyReportWS.Models
 public class User
 {
     public int UserID { get; set; }
-    public string? WindowName { get; set; }
+    public string? WindowsName { get; set; }
     public string? FullName { get; set; }
     public string? Title { get; set; }
     public byte? PositionNumber { get; set; }
@@ -23,7 +23,7 @@ public class User
 
 public class CreateUserRequest
 {
-    public string? WindowName { get; set; }
+    public string? WindowsName { get; set; }
     public string? FullName { get; set; }
     public int? DepartmentID { get; set; }
     public int? UnitID { get; set; }
