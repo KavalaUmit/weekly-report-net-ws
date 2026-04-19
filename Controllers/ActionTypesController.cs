@@ -42,8 +42,8 @@ namespace WeeklyReportWS.Controllers
                 return BadRequest("TypeName is required");
             using var con = _db.CreateConnection();
             var row = await con.QueryFirstAsync<ActionType>(
-                "INSERT INTO tbl_weekly_report_ActionTypes (TypeName, SortOrder) OUTPUT INSERTED.* VALUES (@TypeName, @SortOrder)",
-                new { body.TypeName, body.SortOrder });
+                "INSERT INTO tbl_weekly_report_ActionTypes (TypeName, Header, IncludeDate, SortOrder) OUTPUT INSERTED.* VALUES (@TypeName, @Header, @IncludeDate, @SortOrder)",
+                new { body.TypeName, body.Header, body.IncludeDate, body.SortOrder });
             return Content(HttpStatusCode.Created, row);
         }
 
@@ -54,10 +54,10 @@ namespace WeeklyReportWS.Controllers
             using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<ActionType>(@"
                 UPDATE tbl_weekly_report_ActionTypes
-                SET TypeName=@TypeName, SortOrder=@SortOrder, IsActive=@IsActive
+                SET TypeName=@TypeName, Header=@Header, IncludeDate=@IncludeDate, SortOrder=@SortOrder, IsActive=@IsActive
                 OUTPUT INSERTED.*
                 WHERE TypeID=@id",
-                new { body.TypeName, body.SortOrder, body.IsActive, id });
+                new { body.TypeName, body.Header, body.IncludeDate, body.SortOrder, body.IsActive, id });
             if (row == null) return NotFound();
             return Ok(row);
         }

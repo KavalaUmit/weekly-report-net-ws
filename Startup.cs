@@ -22,7 +22,16 @@ namespace WeeklyReportWS
     {
         public void Configuration(IAppBuilder app)
         {
-            app.UseCors(BuildCorsOptions());
+            app.Use((context, next) =>
+            {
+                if (context.Request.Method == "OPTIONS")
+                {
+                    context.Response.StatusCode = 200;
+                    return Task.CompletedTask;
+                }
+
+                return next();
+            });
 
             var config = new HttpConfiguration();
             config.DependencyResolver = new SimpleDependencyResolver(new SqlDbConnectionFactory());

@@ -15,7 +15,7 @@ namespace WeeklyReportWS.Controllers
         public ActionsController(IDbConnectionFactory db) { _db = db; }
 
         private const string ActionSelect = @"
-            SELECT a.*, w.WeekNumber, w.Year, t.TypeName, s.StatusKey, s.StatusLabel, s.ColorHex, s.BgColorHex,
+            SELECT a.*, w.WeekNumber, w.Year, t.TypeName, t.Header AS TypeHeader, t.IncludeDate, t.SortOrder AS TypeSortOrder, s.StatusKey, s.StatusLabel, s.ColorHex, s.BgColorHex,
                    u.FullName, u.LineID, u.UnitID
             FROM tbl_weekly_report_Actions a
             JOIN tbl_weekly_report_Users       u ON u.UserID  = a.UserID
@@ -114,7 +114,7 @@ namespace WeeklyReportWS.Controllers
                 await con.ExecuteAsync(@"
                     UPDATE tbl_weekly_report_Actions
                     SET WeekID=COALESCE(@WeekID,WeekID), TypeID=COALESCE(@TypeID,TypeID),
-                        ActionDate=COALESCE(@ActionDate,ActionDate), StatusID=@StatusID, UpdatedAt=GETDATE()
+                        ActionDate=COALESCE(@ActionDate,ActionDate), StatusID=COALESCE(@StatusID,StatusID), UpdatedAt=GETDATE()
                     WHERE ActionID=@id AND IsDeleted=0",
                     new { body.WeekID, body.TypeID, body.ActionDate, body.StatusID, id }, tx);
 
@@ -158,10 +158,13 @@ namespace WeeklyReportWS.Controllers
                     WHERE ActionID=@id",
                     new { body.StatusID, id }, tx);
 
-                await con.ExecuteAsync(@"
-                    INSERT INTO tbl_weekly_report_ActionStatusHistory (ActionID, StatusID, ChangedBy)
-                    VALUES (@id, @StatusID, @ChangedBy)",
-                    new { id, body.StatusID, body.ChangedBy }, tx);
+                if (body.StatusID.HasValue)
+                {
+                    await con.ExecuteAsync(@"
+                        INSERT INTO tbl_weekly_report_ActionStatusHistory (ActionID, StatusID, ChangedBy)
+                        VALUES (@id, @StatusID, @ChangedBy)",
+                        new { id, body.StatusID, body.ChangedBy }, tx);
+                }
 
                 tx.Commit();
                 return Ok(new { ActionID = id, body.StatusID });

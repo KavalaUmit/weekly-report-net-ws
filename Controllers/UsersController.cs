@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -68,10 +69,14 @@ namespace WeeklyReportWS.Controllers
             // IIS returns DOMAIN\username – try both forms against the DB
             var shortName = rawName.Contains("\\") ? rawName.Split('\\')[1] : rawName;
 
+            // Uppercase with en-US/Invariant rules to avoid Turkish i→İ conflicts
+            var rawUpper   = rawName.ToUpper(CultureInfo.InvariantCulture);
+            var shortUpper = shortName.ToUpper(CultureInfo.InvariantCulture);
+
             using var con = _db.CreateConnection();
             var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowsName = @rawName OR u.WindowsName = @shortName",
-                new { rawName, shortName });
+                UserSelect + " WHERE UPPER(u.WindowsName) = @rawUpper OR UPPER(u.WindowsName) = @shortUpper",
+                new { rawUpper, shortUpper });
             if (row == null)
                 return Content(HttpStatusCode.NotFound,
                     new { WindowsName = rawName, ShortName = shortName });

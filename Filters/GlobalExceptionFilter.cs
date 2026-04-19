@@ -8,9 +8,15 @@ namespace WeeklyReportWS.Filters
     {
         public override void OnException(HttpActionExecutedContext context)
         {
+            var ex = context.Exception;
             context.Response = context.Request.CreateResponse(
                 HttpStatusCode.InternalServerError,
-                new { error = "An internal server error occurred." }
+                new
+                {
+                    error = ex?.Message,
+                    type  = ex?.GetType().FullName,
+                    inner = ex?.InnerException?.Message
+                }
             );
         }
     }

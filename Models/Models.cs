@@ -46,6 +46,8 @@ public class ActionType
 {
     public int TypeID { get; set; }
     public string? TypeName { get; set; }
+    public string? Header { get; set; }
+    public bool IncludeDate { get; set; } = true;
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
 }
@@ -53,12 +55,16 @@ public class ActionType
 public class CreateActionTypeRequest
 {
     public string? TypeName { get; set; }
+    public string? Header { get; set; }
+    public bool IncludeDate { get; set; } = true;
     public int SortOrder { get; set; }
 }
 
 public class UpdateActionTypeRequest
 {
     public string? TypeName { get; set; }
+    public string? Header { get; set; }
+    public bool IncludeDate { get; set; } = true;
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
 }
@@ -143,6 +149,9 @@ public class Action
     public byte WeekNumber { get; set; }
     public short Year { get; set; }
     public string? TypeName { get; set; }
+    public string? TypeHeader { get; set; }
+    public bool IncludeDate { get; set; }
+    public int TypeSortOrder { get; set; }
     public string? StatusKey { get; set; }
     public string? StatusLabel { get; set; }
     public string? ColorHex { get; set; }
