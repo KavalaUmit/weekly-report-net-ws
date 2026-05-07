@@ -157,8 +157,12 @@ public class Action
     public string? ColorHex { get; set; }
     public string? BgColorHex { get; set; }
     public string? FullName { get; set; }
+    public int? DepartmentID { get; set; }
+    public string? DepartmentName { get; set; }
     public int? LineID { get; set; }
+    public string? LineName { get; set; }
     public int? UnitID { get; set; }
+    public string? UnitName { get; set; }
     public List<ActionItem>? ActionItems { get; set; }
 }
 

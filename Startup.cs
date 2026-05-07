@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,11 +52,17 @@ namespace WeeklyReportWS
                 defaults: new { controller = "Health", action = "Get" }
             );
 
-            config.EnableSwagger(c =>
+            var enableSwagger = string.Equals(
+                ConfigurationManager.AppSettings["EnableSwagger"], "true",
+                StringComparison.OrdinalIgnoreCase);
+            if (enableSwagger)
             {
-                c.SingleApiVersion("v1", "Weekly Report API");
-                c.PrettyPrint();
-            }).EnableSwaggerUi();
+                config.EnableSwagger(c =>
+                {
+                    c.SingleApiVersion("v1", "Weekly Report API");
+                    c.PrettyPrint();
+                }).EnableSwaggerUi();
+            }
 
             app.UseWebApi(config);
         }
@@ -75,12 +82,11 @@ namespace WeeklyReportWS
                 {
                     PolicyResolver = req =>
                     {
-                        var policy = new CorsPolicy
-                        {
-                            AllowAnyHeader = true,
-                            AllowAnyMethod = true,
-                            SupportsCredentials = true
-                        };
+                        var allowed = new List<string> { "GET", "POST", "PUT", "DELETE", "OPTIONS" };
+                        var allowedHeaders = new List<string> { "Content-Type", "Authorization", "X-Requested-With" };
+                        var policy = new CorsPolicy { SupportsCredentials = true };
+                        foreach (var m in allowed)       policy.Methods.Add(m);
+                        foreach (var h in allowedHeaders) policy.Headers.Add(h);
                         // SupportsCredentials=true requires explicit origins (no wildcard)
                         if (origins.Length > 0)
                             foreach (var o in origins)

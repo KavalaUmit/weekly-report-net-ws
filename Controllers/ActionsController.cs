@@ -16,12 +16,15 @@ namespace WeeklyReportWS.Controllers
 
         private const string ActionSelect = @"
             SELECT a.*, w.WeekNumber, w.Year, t.TypeName, t.Header AS TypeHeader, t.IncludeDate, t.SortOrder AS TypeSortOrder, s.StatusKey, s.StatusLabel, s.ColorHex, s.BgColorHex,
-                   u.FullName, u.LineID, u.UnitID
+                   u.FullName, u.LineID, u.UnitID, u.DepartmentID, d.DepartmentName, un.UnitName, li.LineName
             FROM tbl_weekly_report_Actions a
-            JOIN tbl_weekly_report_Users       u ON u.UserID  = a.UserID
-            JOIN tbl_weekly_report_Weeks       w ON w.WeekID  = a.WeekID
-            JOIN tbl_weekly_report_ActionTypes t ON t.TypeID  = a.TypeID
-            LEFT JOIN tbl_weekly_report_ActionStatuses s ON s.StatusID = a.StatusID";
+            JOIN tbl_weekly_report_Users       u  ON u.UserID      = a.UserID
+            JOIN tbl_weekly_report_Weeks       w  ON w.WeekID      = a.WeekID
+            JOIN tbl_weekly_report_ActionTypes t  ON t.TypeID      = a.TypeID
+            LEFT JOIN tbl_weekly_report_ActionStatuses s  ON s.StatusID    = a.StatusID
+            LEFT JOIN tbl_weekly_report_Departments    d  ON d.DepartmentID = u.DepartmentID
+            LEFT JOIN tbl_weekly_report_Units          un ON un.UnitID      = u.UnitID
+            LEFT JOIN tbl_weekly_report_Lines          li ON li.LineID      = u.LineID";
 
         // GET /api/actions?userId=&weekId=&weekNumber=&year=&statusId=&lineId=&unitId=
         [HttpGet, Route("")]
@@ -40,8 +43,10 @@ namespace WeeklyReportWS.Controllers
             if (lineId.HasValue)     { conditions.Add("u.LineID=@lineId");        parameters.Add("lineId",     lineId); }
             if (unitId.HasValue)     { conditions.Add("u.UnitID=@unitId");        parameters.Add("unitId",     unitId); }
 
+            // All entries in 'conditions' are hardcoded column predicates (e.g. "a.UserID=@userId").
+            // All values are bound via Dapper DynamicParameters. No user input reaches the SQL string. // NOSONAR
             var where = "WHERE " + string.Join(" AND ", conditions);
-            var sql = $"{ActionSelect} {where} ORDER BY a.ActionDate, a.ActionID";
+            var sql = $"{ActionSelect} {where} ORDER BY a.ActionDate, a.ActionID"; // NOSONAR
 
             using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<Models.Action>(sql, parameters);

@@ -12,6 +12,7 @@ namespace WeeklyReportWS.Controllers
             return Ok(new { status = "ok", timestamp = DateTime.UtcNow });
         }
 
+        [Authorize]
         [HttpGet]
         [Route("health/diagnostics")]
         public IHttpActionResult Diagnostics()

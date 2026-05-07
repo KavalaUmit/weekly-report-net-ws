@@ -1,7 +1,16 @@
 
 obj/
+bin/
 .vs/
 *.user
 appsettings.Development.json
+
+# Generated publish/deploy output — contains copies of config with credentials
+publish/
+iis-deploy/
+
+# Generated test output binaries
+WeeklyReportWS.Tests/bin/
+WeeklyReportWS.Runner/bin/
 
 
