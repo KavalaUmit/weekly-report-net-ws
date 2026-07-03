@@ -30,7 +30,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Lines_Create_NullBody_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new LinesController(_mockDb.Object));
+            var ctrl = BuildController(new LinesController());
             var result = await ctrl.Create(null);
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -38,7 +38,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Lines_Create_EmptyLineName_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new LinesController(_mockDb.Object));
+            var ctrl = BuildController(new LinesController());
             var result = await ctrl.Create(new CreateLineRequest { LineName = "" });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -46,7 +46,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Lines_Create_WhitespaceLineName_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new LinesController(_mockDb.Object));
+            var ctrl = BuildController(new LinesController());
             var result = await ctrl.Create(new CreateLineRequest { LineName = "   " });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -56,7 +56,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Units_Create_NullBody_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new UnitsController(_mockDb.Object));
+            var ctrl = BuildController(new UnitsController());
             var result = await ctrl.Create(null);
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -64,7 +64,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Units_Create_MissingLineID_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new UnitsController(_mockDb.Object));
+            var ctrl = BuildController(new UnitsController());
             var result = await ctrl.Create(new CreateUnitRequest { LineID = 0, UnitName = "Dev" });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -72,7 +72,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Units_Create_MissingUnitName_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new UnitsController(_mockDb.Object));
+            var ctrl = BuildController(new UnitsController());
             var result = await ctrl.Create(new CreateUnitRequest { LineID = 1, UnitName = "" });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -82,7 +82,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Departments_Create_NullBody_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new DepartmentsController(_mockDb.Object));
+            var ctrl = BuildController(new DepartmentsController());
             var result = await ctrl.Create(null);
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -90,7 +90,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Departments_Create_MissingUnitID_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new DepartmentsController(_mockDb.Object));
+            var ctrl = BuildController(new DepartmentsController());
             var result = await ctrl.Create(new CreateDepartmentRequest { UnitID = 0, DepartmentName = "Engineering" });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }
@@ -98,7 +98,7 @@ namespace WeeklyReportWS.Tests.Controllers
         [Fact]
         public async void Departments_Create_MissingDepartmentName_ReturnsBadRequest()
         {
-            var ctrl = BuildController(new DepartmentsController(_mockDb.Object));
+            var ctrl = BuildController(new DepartmentsController());
             var result = await ctrl.Create(new CreateDepartmentRequest { UnitID = 1, DepartmentName = "" });
             Assert.IsType<BadRequestErrorMessageResult>(result);
         }

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeeklyReportWS.Runner", "We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeeklyReportWS.Tests", "WeeklyReportWS.Tests\WeeklyReportWS.Tests.csproj", "{2708E2E3-8932-4B68-AB6C-D516020580A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeInfo", "EmployeeInfo\EmployeeInfo.csproj", "{19F10279-3DE8-41FC-B7EA-E003D91CAF41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{2708E2E3-8932-4B68-AB6C-D516020580A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2708E2E3-8932-4B68-AB6C-D516020580A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2708E2E3-8932-4B68-AB6C-D516020580A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19F10279-3DE8-41FC-B7EA-E003D91CAF41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19F10279-3DE8-41FC-B7EA-E003D91CAF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19F10279-3DE8-41FC-B7EA-E003D91CAF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19F10279-3DE8-41FC-B7EA-E003D91CAF41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

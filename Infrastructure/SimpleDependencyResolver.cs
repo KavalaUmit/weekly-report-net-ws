@@ -24,10 +24,10 @@ namespace WeeklyReportWS.Infrastructure
             if (serviceType == typeof(ActionStatusesController))    return new ActionStatusesController(_db);
             if (serviceType == typeof(ActionStatusHistoryController)) return new ActionStatusHistoryController(_db);
             if (serviceType == typeof(ActionTypesController))       return new ActionTypesController(_db);
-            if (serviceType == typeof(DepartmentsController))       return new DepartmentsController(_db);
-            if (serviceType == typeof(LinesController))             return new LinesController(_db);
-            if (serviceType == typeof(UnitsController))             return new UnitsController(_db);
-            if (serviceType == typeof(UsersController))             return new UsersController(_db);
+            if (serviceType == typeof(DepartmentsController))       return new DepartmentsController();
+            if (serviceType == typeof(LinesController))             return new LinesController();
+            if (serviceType == typeof(UnitsController))             return new UnitsController();
+            if (serviceType == typeof(UsersController))             return new UsersController();
             if (serviceType == typeof(WeeksController))             return new WeeksController(_db);
             if (serviceType == typeof(HealthController))            return new HealthController();
             return null;

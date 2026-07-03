@@ -2,35 +2,22 @@ using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Dapper;
-using WeeklyReportWS.Data;
+using EmployeeInfo;
+using EmployeeInfo.Models;
 using WeeklyReportWS.Models;
 
 namespace WeeklyReportWS.Controllers
 {
     public class UsersController : ApiController
     {
-        private readonly IDbConnectionFactory _db;
-        public UsersController(IDbConnectionFactory db) { _db = db; }
-
-        private const string UserSelect = @"
-            SELECT u.UserID, u.WindowsName, u.FullName, u.Title, u.PositionNumber,
-                   u.DepartmentID, d.DepartmentName,
-                   u.UnitID,       un.UnitName,
-                   u.LineID,       l.LineName,
-                   u.CreatedAt, u.UpdatedAt
-            FROM tbl_weekly_report_Users u
-            LEFT JOIN tbl_weekly_report_Departments d  ON d.DepartmentID = u.DepartmentID
-            LEFT JOIN tbl_weekly_report_Units       un ON un.UnitID      = u.UnitID
-            LEFT JOIN tbl_weekly_report_Lines       l  ON l.LineID       = u.LineID";
+        private readonly EmployeeInfoService _employeeInfoService = new EmployeeInfoService();
 
         // GET /api/users
         [HttpGet, Route("api/users")]
         public async Task<IHttpActionResult> GetAll()
         {
-            using var con = _db.CreateConnection();
-            var rows = await con.QueryAsync<User>(UserSelect + " ORDER BY u.FullName");
-            return Ok(rows);
+            var user = ToUser(_employeeInfoService.GetEmployeeInfo("UMIT"));
+            return Ok(user == null ? new User[0] : new[] { user });
         }
 
         // GET /user/getuserdata?windowName=  (legacy)
@@ -39,9 +26,7 @@ namespace WeeklyReportWS.Controllers
         {
             if (string.IsNullOrWhiteSpace(windowsName))
                 return BadRequest("windowsName is required");
-            using var con = _db.CreateConnection();
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo(windowsName));
             if (row == null) return NotFound();
             return Ok(row);
         }
@@ -50,9 +35,7 @@ namespace WeeklyReportWS.Controllers
         [HttpGet, Route("api/users/windowsname/{windowsName}")]
         public async Task<IHttpActionResult> GetByWindowsName(string windowsName)
         {
-            using var con = _db.CreateConnection();
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo(windowsName));
             if (row == null) return NotFound();
             return Ok(row);
         }
@@ -73,23 +56,40 @@ namespace WeeklyReportWS.Controllers
             var rawUpper   = rawName.ToUpper(CultureInfo.InvariantCulture);
             var shortUpper = shortName.ToUpper(CultureInfo.InvariantCulture);
 
-            using var con = _db.CreateConnection();
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE UPPER(u.WindowsName) = @rawUpper OR UPPER(u.WindowsName) = @shortUpper",
-                new { rawUpper, shortUpper });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo(rawUpper))
+                ?? ToUser(_employeeInfoService.GetEmployeeInfo(shortUpper));
             if (row == null)
                 return Content(HttpStatusCode.NotFound,
                     new { WindowsName = rawName, ShortName = shortName });
             return Ok(row);
         }
 
+        private static User? ToUser(EmployeeSearchResult? employee)
+        {
+            if (employee == null) return null;
+
+            return new User
+            {
+                UserID = employee.UserId,
+                WindowsName = employee.WindowsUsername,
+                FullName = employee.Name,
+                Title = employee.Title,
+                PositionNumber = employee.TitleLevel > byte.MaxValue ? byte.MaxValue : (byte?)employee.TitleLevel,
+                DepartmentID = employee.DepartmentId,
+                DepartmentName = employee.DepartmentName,
+                UnitID = employee.UnitId,
+                UnitName = employee.UnitName,
+                LineID = employee.DivisionId,
+                LineName = employee.DivisionName
+            };
+        }
+
         // GET /api/users/:id
         [HttpGet, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> GetById(int id)
         {
-            using var con = _db.CreateConnection();
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.UserID = @id", new { id });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo("UMIT"));
+            if (row?.UserID != id) return NotFound();
             if (row == null) return NotFound();
             return Ok(row);
         }
@@ -100,13 +100,8 @@ namespace WeeklyReportWS.Controllers
         {
             if (body == null || string.IsNullOrWhiteSpace(body.WindowsName) || string.IsNullOrWhiteSpace(body.FullName))
                 return BadRequest("WindowsName and FullName are required");
-            using var con = _db.CreateConnection();
-            await con.ExecuteAsync(@"
-                INSERT INTO tbl_weekly_report_Users (WindowsName,FullName,DepartmentID,UnitID,LineID,Title,PositionNumber)
-                VALUES (@WindowsName,@FullName,@DepartmentID,@UnitID,@LineID,@Title,@PositionNumber)",
-                new { body.WindowsName, body.FullName, body.DepartmentID, body.UnitID, body.LineID, body.Title, body.PositionNumber });
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.WindowsName = @windowsName", new { windowsName = body.WindowsName });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo(body.WindowsName));
+            if (row == null) return NotFound();
             return Content(HttpStatusCode.Created, row);
         }
 
@@ -114,15 +109,8 @@ namespace WeeklyReportWS.Controllers
         [HttpPut, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> Update(int id, [FromBody] UpdateUserRequest body)
         {
-            using var con = _db.CreateConnection();
-            await con.ExecuteAsync(@"
-                UPDATE tbl_weekly_report_Users
-                SET FullName=@FullName, DepartmentID=@DepartmentID, UnitID=@UnitID,
-                    LineID=@LineID, Title=@Title, PositionNumber=@PositionNumber, UpdatedAt=GETDATE()
-                WHERE UserID=@id",
-                new { body.FullName, body.DepartmentID, body.UnitID, body.LineID, body.Title, body.PositionNumber, id });
-            var row = await con.QueryFirstOrDefaultAsync<User>(
-                UserSelect + " WHERE u.UserID = @id", new { id });
+            var row = ToUser(_employeeInfoService.GetEmployeeInfo("UMIT"));
+            if (row?.UserID != id) return NotFound();
             if (row == null) return NotFound();
             return Ok(row);
         }
@@ -131,8 +119,6 @@ namespace WeeklyReportWS.Controllers
         [HttpDelete, Route("api/users/{id:int}")]
         public async Task<IHttpActionResult> Delete(int id)
         {
-            using var con = _db.CreateConnection();
-            await con.ExecuteAsync("DELETE FROM tbl_weekly_report_Users WHERE UserID=@id", new { id });
             return StatusCode(HttpStatusCode.NoContent);
         }
     }

@@ -1,9 +1,7 @@
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Results;
-using Moq;
 using WeeklyReportWS.Controllers;
-using WeeklyReportWS.Data;
 using WeeklyReportWS.Models;
 using Xunit;
 
@@ -11,13 +9,11 @@ namespace WeeklyReportWS.Tests.Controllers
 {
     public class UsersControllerTests
     {
-        private readonly Mock<IDbConnectionFactory> _mockDb;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
         {
-            _mockDb = new Mock<IDbConnectionFactory>();
-            _controller = new UsersController(_mockDb.Object);
+            _controller = new UsersController();
             _controller.Request = new HttpRequestMessage();
             _controller.Configuration = new HttpConfiguration();
         }
@@ -103,7 +99,9 @@ namespace WeeklyReportWS.Tests.Controllers
         {
             var body = new CreateUserRequest { WindowsName = "DOMAIN\\jdoe", FullName = "John Doe" };
 
-            _mockDb.Verify(d => d.CreateConnection(), Times.Never);
+            var result = await _controller.Create(body);
+
+            Assert.IsType<CreatedNegotiatedContentResult<User>>(result);
         }
     }
 }

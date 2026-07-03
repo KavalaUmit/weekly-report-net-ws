@@ -157,12 +157,19 @@ public class Action
     public string? ColorHex { get; set; }
     public string? BgColorHex { get; set; }
     public string? FullName { get; set; }
+    public string? WindowsUser { get; set; }
+    public string? UserFullName { get; set; }
     public int? DepartmentID { get; set; }
     public string? DepartmentName { get; set; }
     public int? LineID { get; set; }
     public string? LineName { get; set; }
     public int? UnitID { get; set; }
     public string? UnitName { get; set; }
+    public string? Project { get; set; }
+    public string? GainType { get; set; }
+    public string? UpdatedEffort { get; set; }
+    public string? EffortGain { get; set; }
+    public string? TTMGain { get; set; }
     public List<ActionItem>? ActionItems { get; set; }
 }
 
@@ -173,6 +180,16 @@ public class CreateActionRequest
     public int TypeID { get; set; }
     public string? ActionDate { get; set; }
     public int? StatusID { get; set; }
+    public int? LineID { get; set; }
+    public int? UnitID { get; set; }
+    public int? DepartmentID { get; set; }
+    public string? WindowsUser { get; set; }
+    public string? UserFullName { get; set; }
+    public string? Project { get; set; }
+    public string? GainType { get; set; }
+    public string? UpdatedEffort { get; set; }
+    public string? EffortGain { get; set; }
+    public string? TTMGain { get; set; }
     public List<ActionItemInput>? actionItems { get; set; }
 }
 
@@ -182,6 +199,16 @@ public class UpdateActionRequest
     public int? TypeID { get; set; }
     public string? ActionDate { get; set; }
     public int? StatusID { get; set; }
+    public int? LineID { get; set; }
+    public int? UnitID { get; set; }
+    public int? DepartmentID { get; set; }
+    public string? WindowsUser { get; set; }
+    public string? UserFullName { get; set; }
+    public string? Project { get; set; }
+    public string? GainType { get; set; }
+    public string? UpdatedEffort { get; set; }
+    public string? EffortGain { get; set; }
+    public string? TTMGain { get; set; }
     public List<ActionItemInput>? actionItems { get; set; }
 }
 

@@ -2,6 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Dapper;
+using EmployeeInfo;
 using WeeklyReportWS.Data;
 using WeeklyReportWS.Models;
 
@@ -12,6 +13,7 @@ namespace WeeklyReportWS.Controllers
     {
         private readonly IDbConnectionFactory _db;
         public ActionStatusHistoryController(IDbConnectionFactory db) { _db = db; }
+        private readonly EmployeeInfoService _employeeInfoService = new EmployeeInfoService();
 
         // GET /api/actions/:actionId/status-history
         [HttpGet, Route("{actionId:long}/status-history")]
@@ -19,13 +21,20 @@ namespace WeeklyReportWS.Controllers
         {
             using var con = _db.CreateConnection();
             var rows = await con.QueryAsync<ActionStatusHistory>(@"
-                SELECT h.*, s.StatusKey, s.StatusLabel, s.ColorHex, u.FullName AS ChangedByName
+                SELECT h.*, s.StatusKey, s.StatusLabel, s.ColorHex
                 FROM tbl_weekly_report_ActionStatusHistory h
                 LEFT JOIN tbl_weekly_report_ActionStatuses s ON s.StatusID = h.StatusID
-                JOIN tbl_weekly_report_Users u ON u.UserID = h.ChangedBy
                 WHERE h.ActionID = @actionId
                 ORDER BY h.ChangedAt DESC",
                 new { actionId });
+            var employee = _employeeInfoService.GetEmployeeInfo("UMIT");
+            foreach (var row in rows)
+            {
+                if (employee != null && row.ChangedBy == employee.UserId)
+                {
+                    row.ChangedByName = employee.Name;
+                }
+            }
             return Ok(rows);
         }
 
